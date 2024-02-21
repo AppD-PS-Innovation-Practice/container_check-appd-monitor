@@ -49,39 +49,39 @@ A Python script to provide availability status of Docker containers by sending m
 |-------------------------------------------------------------------------------------|
 | Name and default values                                                             |
 |-------------------------------------------------------------------------------------|
-'metric_prefix'                                                                       |
-help='Metric Browser prefix that will appear under machineagent listed above'         |
-default='Custom Metrics|ContainerCheck'                                               |
+| 'loglevel'                                                                          |
+|   help='Logging level - mainly for debugging'                                       |
+|   default='ERROR'                                                                   |
+|   choices=['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL']                         |
 |-------------------------------------------------------------------------------------|
-'loglevel'                                                                            |
-help='Logging level - mainly for debugging'                                           |
-default='ERROR'                                                                       |
-choices=['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL']                             |
+| 'sudo_nopasswd'                                                                     |
+|   help='Is sudo NOPASSWD required'                                                  |
+|   default=True                                                                      |
+|   choices=['True', 'False']                                                         |
 |-------------------------------------------------------------------------------------|
-'sudo_nopasswd'                                                                       |
-help='Is sudo NOPASSWD required'                                                      |
-default=True                                                                          |
-choices=['True', 'False']                                                             |
+| 'docker_path'                                                                       |
+|   help='Fully qualified path for docker'                                            |
+|   default='/usr/bin/docker'                                                         |
 |-------------------------------------------------------------------------------------|
-'docker_path'                                                                         |
-help='Fully qualified path for docker'                                                |
-default='/usr/bin/docker'                                                             |
+| 'timeout'                                                                           |
+|   help='subprocess timeout - Must be less than crontab schedule'                    |
+|   type=int, default=30                                                              |
 |-------------------------------------------------------------------------------------|
-'timeout'                                                                             |
-help='subprocess timeout - Must be less than crontab schedule'                        |
-type=int, default=30                                                                  |
+| 'monitored_containers_filename'                                                     |
+|   help='Config file of list of containers to check with docker ps'                  |
+|   default='/appd/extensions/monitored_containers.txt'                               |
 |-------------------------------------------------------------------------------------|
-"monitored_containers_filename"                                                       |
-help='Config file of list of containers to check with docker ps'                      |
-default='/appd/extensions/monitored_containers.txt'                                   |
+| 'machineagent_hostname'                                                             |
+|   help='Hostname for machine agent listener'                                        |
+|   default='127.0.0.1'                                                               |
 |-------------------------------------------------------------------------------------|
-'machineagent_hostname'                                                               |
-help='Hostname for machine agent listener'                                            |
-default='127.0.0.1'                                                                   |
+| 'machineagent_port'                                                                 |
+|   help='Port for machine agent listener'                                            |
+|   default=8293                                                                      |
 |-------------------------------------------------------------------------------------|
-'machineagent_port'                                                                   |
-help='Port for machine agent listener'                                                |
-default=8293                                                                          |
+| 'metric_prefix'                                                                     |
+|   help='Metric Browser prefix that will appear under machineagent listed above'     |
+|   default='Custom Metrics|ContainerCheck'                                           |
 |-------------------------------------------------------------------------------------|
 ```
 
