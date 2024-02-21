@@ -152,7 +152,7 @@ if __name__ == '__main__':
                         help='subprocess timeout - Must be less than crontab schedule',
                         nargs='?',
                         type=int, default=30)
-    parser.add_argument("monitored_containers_filename",
+    parser.add_argument('monitored_containers_filename',
                         help='Config file of list of containers to check with docker ps',
                         nargs='?',
                         default='/appd/extensions/monitored_containers.txt')
