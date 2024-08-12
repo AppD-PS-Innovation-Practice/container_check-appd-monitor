@@ -94,7 +94,7 @@ def main(metrictype, loglevel, sudo_nopasswd, docker_path, timeout,
                     memory = 999
                 else:
                     for rc in running_containers:
-                        availability = 1
+                        availability = 0
                         cpu = 999
                         memory = 999
                         rc_name = rc[0]
@@ -108,13 +108,13 @@ def main(metrictype, loglevel, sudo_nopasswd, docker_path, timeout,
                         logging.info(f'rc_name is {rc_name}, rc_cpu is {rc_cpu}, rc_memory is {rc_memory}')
 
                         if monitored_container == rc_name:
-                            availability = 0
+                            availability = 1
                             logging.info(f'{monitored_container} is running. Availability:{availability}')
                             cpu = rc_cpu
                             memory = rc_memory
                             break
 
-                    if availability == 1:
+                    if availability == 0:
 
                         if metrictype=='MachineAgent' or metrictype=='MachineAgent+Analytics':
 
@@ -197,9 +197,10 @@ def main(metrictype, loglevel, sudo_nopasswd, docker_path, timeout,
                     logging.info(
                         f'POST Status Code: {response.status_code} POST Response: {response.text}')
                     # Status code will be 204 as listener responds with no_content
-                    if response.status_code != 204:
+					# add 200
+                    if response.status_code != 204 and response.status_code != 200:
                         logging.error(
-                            f'Expected 204. Got {response.status_code} for status code')
+                            f'Expected 204 or 200. Got {response.status_code} for status code')
                 except requests.exceptions.RequestException as exc:
                     logging.error(
                         f'POST failed for {metrics_url} with ma_payload {data}\n{exc}')
@@ -215,9 +216,10 @@ def main(metrictype, loglevel, sudo_nopasswd, docker_path, timeout,
                     logging.info(
                         f'POST Status Code: {response.status_code} POST Response: {response.text}')
                     # Status code will be 204 as listener responds with no_content
-                    if response.status_code != 204:
+					# add 200
+                    if response.status_code != 204 and response.status_code != 200:
                         logging.error(
-                            f'Expected 204. Got {response.status_code} for status code')
+                            f'Expected 204 or 200. Got {response.status_code} for status code')
                 except requests.exceptions.RequestException as exc:
                     logging.error(
                         f'POST failed for {analytics_url} with analytics_payload {data}\n{exc}')
