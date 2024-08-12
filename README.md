@@ -14,7 +14,7 @@ A Python script to provide availability status of Docker containers by sending m
 |                              | Docker is either not running or insufficient permissions to run command.|
 |------------------------------+-------------------------------------------------------------------------|
 | Availability                 | Up/Down status of the monitored container.                              |
-| for each monitored container | Value will be 0 if Up, 1 for Down, or 2 for Unknown.                    |
+| for each monitored container | Value will be 1 if Up, 0 for Down, or 2 for Unknown.                    |
 |                              | Unknown is set when docker ps fails.                                    |
 |------------------------------+-------------------------------------------------------------------------|
 ```
@@ -48,6 +48,11 @@ A Python script to provide availability status of Docker containers by sending m
 ```
 |-------------------------------------------------------------------------------------|
 | Name and default values                                                             |
+|-------------------------------------------------------------------------------------|
+| 'metrictype'                                                                           |
+|   help='machine agent or analytics custom schema'                                   |
+|   default='MachineAgent'                                                            |
+|   choices=['MachineAgent', 'Analytics', 'MachineAgent+Analytics']                   |
 |-------------------------------------------------------------------------------------|
 | 'loglevel'                                                                          |
 |   help='Logging level - mainly for debugging'                                       |
@@ -83,6 +88,19 @@ A Python script to provide availability status of Docker containers by sending m
 |   help='Metric Browser prefix that will appear under machineagent listed above'     |
 |   default='Custom Metrics|ContainerCheck'                                           |
 |-------------------------------------------------------------------------------------|
+| 'custom_schema'                                                                     |
+|   help='custom schema of container check data'                                      |
+|   default='containercheck'                                                          |
+|-------------------------------------------------------------------------------------|
+| 'global_account_name'                                                               |
+|   help='controller > gear > license > global account name'                          |
+|   default='controllername_guid'                                                     |
+|-------------------------------------------------------------------------------------|
+| 'api_key'                                                                           |
+|   help='controller > analytics > configuration > api keys > add w/ custom analytics events permissions'|
+|   default='guid'                                                                    |
+|-------------------------------------------------------------------------------------|
+
 ```
 
 
