@@ -52,10 +52,24 @@ def main(metrictype, loglevel, sudo_nopasswd, docker_path, timeout,
             container_name = container.split()[1]
             container_cpu = container.split()[2]
             container_memory = container.split()[6]
-            container_entry = [container_name, container_cpu, container_memory]
+            container_netIO = container.split()[7] + " " + container.split()[8] + " " + container.split()[9]
+            container_entry = [container_name, container_cpu, container_memory, container_netIO]
             logging.info(f'container_entry:\n{container_entry}')
             running_containers.append(container_entry)
             running_containers = sorted(running_containers)
+
+        if sudo_nopasswd:
+            hostname_command = ['sudo', 'hostname']
+        else:
+            hostname_command = ['hostname']
+        run_hostname = subprocess.run(
+            hostname_command, timeout=timeout, check=True, capture_output=True, text=True)
+        logging.info(f'run_hostname:\n{run_hostname}')
+        stdout_hostname = run_hostname.stdout.splitlines()
+        logging.info(f'stdout_hostname:\n{stdout_hostname}')
+        hostname_value = stdout_hostname[0]
+        logging.info(f'hostname_value:\n{hostname_value}')
+
     except FileNotFoundError as exc:
         logging.error(f'docker executable could not be found.\n{exc}')
         # print(f'docker executable could not be found.\n{exc}')
@@ -88,15 +102,18 @@ def main(metrictype, loglevel, sudo_nopasswd, docker_path, timeout,
                 metric_availability = f'{metric_prefix}|Availability|{monitored_container}'
                 metric_cpu = f'{metric_prefix}|{monitored_container}|CPU'
                 metric_memory = f'{metric_prefix}|{monitored_container}|Memory'
+                metric_netIO = f'{metric_prefix}|{monitored_container}|NetIO'
                 if unknown:
                     availability = 2
                     cpu = 999
                     memory = 999
+                    netIO= 999
                 else:
                     for rc in running_containers:
-                        availability = 1
+                        availability = 0
                         cpu = 999
                         memory = 999
+                        netIO = 999
                         rc_name = rc[0]
                         rc_name = rc_name.replace('%', '')
                         rc_cpu = rc[1]
@@ -105,16 +122,18 @@ def main(metrictype, loglevel, sudo_nopasswd, docker_path, timeout,
                         rc_memory = rc[2]
                         rc_memory = rc_memory.replace('%', '')
                         rc_memory = float(rc_memory)
-                        logging.info(f'rc_name is {rc_name}, rc_cpu is {rc_cpu}, rc_memory is {rc_memory}')
+                        rc_netIO = rc[3]
+                        logging.info(f'rc_name is {rc_name}, rc_cpu is {rc_cpu}, rc_memory is {rc_memory}, rc_netIO is {rc_netIO}')
 
                         if monitored_container == rc_name:
-                            availability = 0
+                            availability = 1
                             logging.info(f'{monitored_container} is running. Availability:{availability}')
                             cpu = rc_cpu
                             memory = rc_memory
+                            netIO = rc_netIO
                             break
 
-                    if availability == 1:
+                    if availability == 0:
 
                         if metrictype=='MachineAgent' or metrictype=='MachineAgent+Analytics':
 
@@ -129,6 +148,7 @@ def main(metrictype, loglevel, sudo_nopasswd, docker_path, timeout,
                         if metrictype=='Analytics' or metrictype=='MachineAgent+Analytics':
                             analytics_payload = json.dumps([
                                 {
+                                    "storenumber": hostname_value,
                                     "name": rc_name,
                                     "availability": availability,
                                 }
@@ -151,6 +171,11 @@ def main(metrictype, loglevel, sudo_nopasswd, docker_path, timeout,
                                     "metricName": metric_memory,
                                     "aggregatorType": "OBSERVATION",
                                     "value": memory
+                                },
+                                {
+                                    "metricName": metric_netIO,
+                                    "aggregatorType": "OBSERVATION",
+                                    "value": netIO
                                 }
                                 ])
 
@@ -160,10 +185,12 @@ def main(metrictype, loglevel, sudo_nopasswd, docker_path, timeout,
                         if metrictype=='Analytics' or metrictype=='MachineAgent+Analytics':
                             analytics_payload = json.dumps([
                                 {
+                                    "storenumber": hostname_value,
                                     "name": rc_name,
                                     "availability": availability,
                                     "cpu": cpu,
-                                    "memory": memory
+                                    "memory": memory,
+                                    "netIO": netIO
                                 }
                                 ])
 
@@ -197,9 +224,10 @@ def main(metrictype, loglevel, sudo_nopasswd, docker_path, timeout,
                     logging.info(
                         f'POST Status Code: {response.status_code} POST Response: {response.text}')
                     # Status code will be 204 as listener responds with no_content
-                    if response.status_code != 204:
+					# add 200
+                    if response.status_code != 204 and response.status_code != 200:
                         logging.error(
-                            f'Expected 204. Got {response.status_code} for status code')
+                            f'Expected 204 or 200. Got {response.status_code} for status code')
                 except requests.exceptions.RequestException as exc:
                     logging.error(
                         f'POST failed for {metrics_url} with ma_payload {data}\n{exc}')
@@ -215,9 +243,10 @@ def main(metrictype, loglevel, sudo_nopasswd, docker_path, timeout,
                     logging.info(
                         f'POST Status Code: {response.status_code} POST Response: {response.text}')
                     # Status code will be 204 as listener responds with no_content
-                    if response.status_code != 204:
+					# add 200
+                    if response.status_code != 204 and response.status_code != 200:
                         logging.error(
-                            f'Expected 204. Got {response.status_code} for status code')
+                            f'Expected 204 or 200. Got {response.status_code} for status code')
                 except requests.exceptions.RequestException as exc:
                     logging.error(
                         f'POST failed for {analytics_url} with analytics_payload {data}\n{exc}')
