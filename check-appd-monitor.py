@@ -102,12 +102,14 @@ def main(metrictype, loglevel, sudo_nopasswd, docker_path, timeout,
                 metric_availability = f'{metric_prefix}|Availability|{monitored_container}'
                 metric_cpu = f'{metric_prefix}|{monitored_container}|CPU'
                 metric_memory = f'{metric_prefix}|{monitored_container}|Memory'
+				metric_netIO = f'{metric_prefix}|{monitored_container}|NetIO'
                 metric_netI = f'{metric_prefix}|{monitored_container}|NetI'
                 metric_netO = f'{metric_prefix}|{monitored_container}|NetO'
                 if unknown:
                     availability = 2
                     cpu = 999
                     memory = 999
+					netIO= 999
                     netI= 999
                     netO= 999
                 else:
@@ -115,6 +117,7 @@ def main(metrictype, loglevel, sudo_nopasswd, docker_path, timeout,
                         availability = 0
                         cpu = 999
                         memory = 999
+						netIO= 999
                         netI = 999
                         netO = 999
 
@@ -147,7 +150,6 @@ def main(metrictype, loglevel, sudo_nopasswd, docker_path, timeout,
                         # Convert to integers
                         rc_memory = int(rc_memory_rounded)
 
-						# sabrina
                         rc_netIO = rc[3]
                         rc_netIO_parse = rc_netIO.split("/")
 
@@ -192,17 +194,14 @@ def main(metrictype, loglevel, sudo_nopasswd, docker_path, timeout,
                             rc_netO = rc_netO.replace(sizeB, "")
                             rc_netO = float(rc_netO)
 
-                        logging.info(f'********************* rc_netIO is {rc_netIO}')
-                        logging.info(f'********************* rc_netI is {rc_netI}')
-                        logging.info(f'********************* rc_netO is {rc_netO}')
-
-                        logging.info(f'rc_name is {rc_name}, rc_cpu is {rc_cpu}, rc_memory is {rc_memory}, rc_netI is {rc_netI}, rc_netO is {rc_netO}')
+                        logging.info(f'rc_name is {rc_name}, rc_cpu is {rc_cpu}, rc_memory is {rc_memory}, rc_netIO is {rc_netIO}, rc_netI is {rc_netI}, rc_netO is {rc_netO}')
 
                         if monitored_container == rc_name:
                             availability = 1
                             logging.info(f'{monitored_container} is running. Availability:{availability}')
                             cpu = rc_cpu
                             memory = rc_memory
+							netIO = rc_netIO
                             netI = rc_netI
                             netO = rc_netO
                             break
@@ -269,8 +268,7 @@ def main(metrictype, loglevel, sudo_nopasswd, docker_path, timeout,
                                     "availability": availability,
                                     "cpu": cpu,
                                     "memory": memory,
-                                    "netI": netI,
-									"netO": netO
+                                    "netIO": netIO
                                 }
                                 ])
 
