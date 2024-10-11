@@ -59,9 +59,9 @@ def main(metrictype, loglevel, sudo_nopasswd, docker_path, timeout,
             running_containers = sorted(running_containers)
 
         if sudo_nopasswd:
-            hostname_command = ['sudo', 'hostname']
+            hostname_command = ['sudo', 'echo $FACILITY_ID']
         else:
-            hostname_command = ['hostname']
+            hostname_command = ['echo $FACILITY_ID']
         run_hostname = subprocess.run(
             hostname_command, timeout=timeout, check=True, capture_output=True, text=True)
         logging.info(f'run_hostname:\n{run_hostname}')
@@ -102,14 +102,14 @@ def main(metrictype, loglevel, sudo_nopasswd, docker_path, timeout,
                 metric_availability = f'{metric_prefix}|Availability|{monitored_container}'
                 metric_cpu = f'{metric_prefix}|{monitored_container}|CPU'
                 metric_memory = f'{metric_prefix}|{monitored_container}|Memory'
-				metric_netIO = f'{metric_prefix}|{monitored_container}|NetIO'
+                metric_netIO = f'{metric_prefix}|{monitored_container}|NetIO'
                 metric_netI = f'{metric_prefix}|{monitored_container}|NetI'
                 metric_netO = f'{metric_prefix}|{monitored_container}|NetO'
                 if unknown:
                     availability = 2
                     cpu = 999
                     memory = 999
-					netIO= 999
+                    netIO= 999
                     netI= 999
                     netO= 999
                 else:
@@ -117,7 +117,7 @@ def main(metrictype, loglevel, sudo_nopasswd, docker_path, timeout,
                         availability = 0
                         cpu = 999
                         memory = 999
-						netIO= 999
+                        netIO= 999
                         netI = 999
                         netO = 999
 
@@ -201,7 +201,7 @@ def main(metrictype, loglevel, sudo_nopasswd, docker_path, timeout,
                             logging.info(f'{monitored_container} is running. Availability:{availability}')
                             cpu = rc_cpu
                             memory = rc_memory
-							netIO = rc_netIO
+                            netIO = rc_netIO
                             netI = rc_netI
                             netO = rc_netO
                             break
