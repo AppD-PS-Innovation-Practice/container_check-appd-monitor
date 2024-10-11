@@ -59,16 +59,16 @@ def main(metrictype, loglevel, sudo_nopasswd, docker_path, timeout,
             running_containers = sorted(running_containers)
 
         if sudo_nopasswd:
-            hostname_command = ['sudo', 'echo $FACILITY_ID']
+            storenumber_command = ['sudo', 'echo $FACILITY_ID']
         else:
-            hostname_command = ['echo $FACILITY_ID']
-        run_hostname = subprocess.run(
-            hostname_command, timeout=timeout, check=True, capture_output=True, text=True)
-        logging.info(f'run_hostname:\n{run_hostname}')
-        stdout_hostname = run_hostname.stdout.splitlines()
-        logging.info(f'stdout_hostname:\n{stdout_hostname}')
-        hostname_value = stdout_hostname[0]
-        logging.info(f'hostname_value:\n{hostname_value}')
+            storenumber_command = ['echo $FACILITY_ID']
+        run_storenumber = subprocess.run(
+            storenumber_command, timeout=timeout, check=True, capture_output=True, text=True)
+        logging.info(f'run_storenumber:\n{run_storenumber}')
+        stdout_storenumber = run_storenumber.stdout.splitlines()
+        logging.info(f'stdout_storenumber:\n{stdout_storenumber}')
+        storenumber_value = stdout_storenumber[0]
+        logging.info(f'storenumber_value:\n{storenumber_value}')
 
     except FileNotFoundError as exc:
         logging.error(f'docker executable could not be found.\n{exc}')
@@ -126,29 +126,11 @@ def main(metrictype, loglevel, sudo_nopasswd, docker_path, timeout,
 
                         rc_cpu = rc[1]
                         rc_cpu = rc_cpu.replace('%', '')
-                        rc_cpu = float(rc_cpu)
-
-                        # Round CPU to the nearest hundreds
-                        rc_cpu_rounded = round(rc_cpu * 1000, -2)
-                        # Set a minimum threshold for the rounded value
-                        min_threshold = 100
-                        if rc_cpu_rounded < min_threshold:
-                            rc_cpu_rounded = min_threshold
-                        # Convert to integers
-                        rc_cpu = int(rc_cpu_rounded)
+                        rc_cpu = float(rc_cpu)	
 
                         rc_memory = rc[2]
                         rc_memory = rc_memory.replace('%', '')
                         rc_memory = float(rc_memory)
-
-                        # Round memory to the nearest hundreds
-                        rc_memory_rounded = round(rc_memory * 1000, -2)
-                        # Set a minimum threshold for the rounded value
-                        min_threshold = 100
-                        if rc_memory_rounded < min_threshold:
-                            rc_memory_rounded = min_threshold
-                        # Convert to integers
-                        rc_memory = int(rc_memory_rounded)
 
                         rc_netIO = rc[3]
                         rc_netIO_parse = rc_netIO.split("/")
@@ -163,36 +145,38 @@ def main(metrictype, loglevel, sudo_nopasswd, docker_path, timeout,
                         if sizeGB in rc_netI:
                             rc_netI = rc_netI.replace(sizeGB, "")
                             rc_netI = float(rc_netI)
-                            rc_netI = rc_netI * 1000000000
+                            rc_netI = rc_netI * 1000
                         elif sizeMB in rc_netI:
                             rc_netI = rc_netI.replace(sizeMB, "")
                             rc_netI = float(rc_netI)
-                            rc_netI = rc_netI * 1000000
+                            rc_netI = rc_netI * 1
                         elif sizeKB in rc_netI:
                             rc_netI = rc_netI.replace(sizeKB, "")
                             rc_netI = float(rc_netI)
-                            rc_netI = rc_netI * 1000
+                            rc_netI = rc_netI / 1000
                         elif sizeB in rc_netI:
                             rc_netI = rc_netI.replace(sizeB, "")
                             rc_netI = float(rc_netI)
+                            rc_netI = rc_netI / 1000000
 
                         rc_netO = rc_netIO_parse[1]
                         rc_netO = rc_netO.strip()
                         if sizeGB in rc_netO:
                             rc_netO = rc_netO.replace(sizeGB, "")
                             rc_netO = float(rc_netO)
-                            rc_netO = rc_netO * 1000000000
+                            rc_netO = rc_netO * 1000
                         elif sizeMB in rc_netO:
                             rc_netO = rc_netO.replace(sizeMB, "")
                             rc_netO = float(rc_netO)
-                            rc_netO = rc_netO * 1000000
+                            rc_netO = rc_netO * 1
                         elif sizeKB in rc_netO:
                             rc_netO = rc_netO.replace(sizeKB, "")
                             rc_netO = float(rc_netO)
-                            rc_netO = rc_netO * 1000
+                            rc_netO = rc_netO / 1000
                         elif sizeB in rc_netO:
                             rc_netO = rc_netO.replace(sizeB, "")
                             rc_netO = float(rc_netO)
+                            rc_netO = rc_netO / 1000000
 
                         logging.info(f'rc_name is {rc_name}, rc_cpu is {rc_cpu}, rc_memory is {rc_memory}, rc_netIO is {rc_netIO}, rc_netI is {rc_netI}, rc_netO is {rc_netO}')
 
@@ -221,7 +205,7 @@ def main(metrictype, loglevel, sudo_nopasswd, docker_path, timeout,
                         if metrictype=='Analytics' or metrictype=='MachineAgent+Analytics':
                             analytics_payload = json.dumps([
                                 {
-                                    "storenumber": hostname_value,
+                                    "storenumber": storenumber_value,
                                     "name": rc_name,
                                     "availability": availability,
                                 }
@@ -263,7 +247,7 @@ def main(metrictype, loglevel, sudo_nopasswd, docker_path, timeout,
                         if metrictype=='Analytics' or metrictype=='MachineAgent+Analytics':
                             analytics_payload = json.dumps([
                                 {
-                                    "storenumber": hostname_value,
+                                    "storenumber": storenumber_value,
                                     "name": rc_name,
                                     "availability": availability,
                                     "cpu": cpu,
