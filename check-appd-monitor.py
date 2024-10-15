@@ -248,7 +248,7 @@ def main(metrictype, loglevel, sudo_nopasswd, docker_path, timeout,
                             analytics_payload = json.dumps([
                                 {
                                     "storenumber": storenumber_value,
-                                    "name": rc_name,
+                                    "name": "A" + rc_name,
                                     "availability": availability,
                                     "cpu": cpu,
                                     "memory": memory,
