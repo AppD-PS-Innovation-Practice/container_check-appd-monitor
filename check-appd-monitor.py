@@ -5,6 +5,7 @@ import logging
 import requests
 import subprocess
 import sys
+import os
 
 
 def main(metrictype, loglevel, sudo_nopasswd, docker_path, timeout,
@@ -58,16 +59,7 @@ def main(metrictype, loglevel, sudo_nopasswd, docker_path, timeout,
             running_containers.append(container_entry)
             running_containers = sorted(running_containers)
 
-        if sudo_nopasswd:
-            storenumber_command = ['sudo', 'echo $FACILITY_ID']
-        else:
-            storenumber_command = ['echo $FACILITY_ID']
-        run_storenumber = subprocess.run(
-            storenumber_command, timeout=timeout, check=True, capture_output=True, text=True)
-        logging.info(f'run_storenumber:\n{run_storenumber}')
-        stdout_storenumber = run_storenumber.stdout.splitlines()
-        logging.info(f'stdout_storenumber:\n{stdout_storenumber}')
-        storenumber_value = stdout_storenumber[0]
+        storenumber_value = os.environ['FACILITY_ID']
         logging.info(f'storenumber_value:\n{storenumber_value}')
 
     except FileNotFoundError as exc:
@@ -109,15 +101,15 @@ def main(metrictype, loglevel, sudo_nopasswd, docker_path, timeout,
                     availability = 2
                     cpu = 999
                     memory = 999
-                    netIO= 999
-                    netI= 999
-                    netO= 999
+                    netIO = 999
+                    netI = 999
+                    netO = 999
                 else:
                     for rc in running_containers:
                         availability = 0
                         cpu = 999
                         memory = 999
-                        netIO= 999
+                        netIO = 999
                         netI = 999
                         netO = 999
 
@@ -126,7 +118,7 @@ def main(metrictype, loglevel, sudo_nopasswd, docker_path, timeout,
 
                         rc_cpu = rc[1]
                         rc_cpu = rc_cpu.replace('%', '')
-                        rc_cpu = float(rc_cpu)	
+                        rc_cpu = float(rc_cpu)
 
                         rc_memory = rc[2]
                         rc_memory = rc_memory.replace('%', '')
@@ -139,7 +131,7 @@ def main(metrictype, loglevel, sudo_nopasswd, docker_path, timeout,
                         sizeMB = "MB"
                         sizeKB = "kB"
                         sizeB = "B"
-                        						
+
                         rc_netI = rc_netIO_parse[0]
                         rc_netI = rc_netI.strip()
                         if sizeGB in rc_netI:
@@ -178,7 +170,8 @@ def main(metrictype, loglevel, sudo_nopasswd, docker_path, timeout,
                             rc_netO = float(rc_netO)
                             rc_netO = rc_netO / 1000000
 
-                        logging.info(f'rc_name is {rc_name}, rc_cpu is {rc_cpu}, rc_memory is {rc_memory}, rc_netIO is {rc_netIO}, rc_netI is {rc_netI}, rc_netO is {rc_netO}')
+                        logging.info(
+                            f'rc_name is {rc_name}, rc_cpu is {rc_cpu}, rc_memory is {rc_memory}, rc_netIO is {rc_netIO}, rc_netI is {rc_netI}, rc_netO is {rc_netO}')
 
                         if monitored_container == rc_name:
                             availability = 1
@@ -192,8 +185,7 @@ def main(metrictype, loglevel, sudo_nopasswd, docker_path, timeout,
 
                     if availability == 0:
 
-                        if metrictype=='MachineAgent' or metrictype=='MachineAgent+Analytics':
-
+                        if metrictype == 'MachineAgent' or metrictype == 'MachineAgent+Analytics':
                             logging.info(f'{monitored_container} is NOT running. Availability:{availability}')
                             ma_payload = json.dumps([
                                 {
@@ -201,18 +193,18 @@ def main(metrictype, loglevel, sudo_nopasswd, docker_path, timeout,
                                     "aggregatorType": "OBSERVATION",
                                     "value": availability
                                 }
-                                ])
-                        if metrictype=='Analytics' or metrictype=='MachineAgent+Analytics':
+                            ])
+                        if metrictype == 'Analytics' or metrictype == 'MachineAgent+Analytics':
                             analytics_payload = json.dumps([
                                 {
                                     "storenumber": storenumber_value,
                                     "name": rc_name,
                                     "availability": availability,
                                 }
-                                ])
+                            ])
                     else:
 
-                        if metrictype=='MachineAgent' or metrictype=='MachineAgent+Analytics':
+                        if metrictype == 'MachineAgent' or metrictype == 'MachineAgent+Analytics':
                             ma_payload = json.dumps([
                                 {
                                     "metricName": metric_availability,
@@ -239,22 +231,22 @@ def main(metrictype, loglevel, sudo_nopasswd, docker_path, timeout,
                                     "aggregatorType": "OBSERVATION",
                                     "value": netO
                                 }
-                                ])
+                            ])
 
                             logging.info(f'going to add post ma_payload metrics: {ma_payload}')
                             ma_custom_metrics.append(ma_payload)
 
-                        if metrictype=='Analytics' or metrictype=='MachineAgent+Analytics':
+                        if metrictype == 'Analytics' or metrictype == 'MachineAgent+Analytics':
                             analytics_payload = json.dumps([
                                 {
                                     "storenumber": storenumber_value,
-                                    "name": "A" + rc_name,
+                                    "name": rc_name,
                                     "availability": availability,
                                     "cpu": cpu,
                                     "memory": memory,
                                     "netIO": netIO
                                 }
-                                ])
+                            ])
 
                             logging.info(f'going to add post analytics_payload metrics: {analytics_payload}')
                             analytics_custom_schema.append(analytics_payload)
@@ -263,7 +255,7 @@ def main(metrictype, loglevel, sudo_nopasswd, docker_path, timeout,
             logging.error(f'An exception occurred: {error}')
             # logging.error(f'Unable to open {monitored_containers_filename}')
 
-        if metrictype=='MachineAgent' or metrictype=='MachineAgent+Analytics':
+        if metrictype == 'MachineAgent' or metrictype == 'MachineAgent+Analytics':
             metric_name = f'{metric_prefix}|Status'
             ma_payload = json.dumps([
                 {
@@ -286,7 +278,7 @@ def main(metrictype, loglevel, sudo_nopasswd, docker_path, timeout,
                     logging.info(
                         f'POST Status Code: {response.status_code} POST Response: {response.text}')
                     # Status code will be 204 as listener responds with no_content
-					# add 200
+                    # add 200
                     if response.status_code != 204 and response.status_code != 200:
                         logging.error(
                             f'Expected 204 or 200. Got {response.status_code} for status code')
@@ -305,7 +297,7 @@ def main(metrictype, loglevel, sudo_nopasswd, docker_path, timeout,
                     logging.info(
                         f'POST Status Code: {response.status_code} POST Response: {response.text}')
                     # Status code will be 204 as listener responds with no_content
-					# add 200
+                    # add 200
                     if response.status_code != 204 and response.status_code != 200:
                         logging.error(
                             f'Expected 204 or 200. Got {response.status_code} for status code')
@@ -359,7 +351,7 @@ if __name__ == '__main__':
                         nargs='?', default='127.0.0.1')
     parser.add_argument('machineagent_port',
                         help='Port for machine agent listener',
-                        nargs='?',  default=8293)
+                        nargs='?', default=8293)
     parser.add_argument('metric_prefix',
                         help='Metric Browser prefix that will appear under machineagent listed above',
                         nargs='?',
